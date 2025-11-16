@@ -10,7 +10,7 @@ class ManagerMiddleware
     public function handle(Request $request, Closure $next)
     {
         if (!auth()->check() || auth()->user()->role !== 'manager') {
-            return response()->json(['message' => 'Unauthorized'], 403);
+            return response()->json(['error' => 'Access denied. Managers only.'], 403);
         }
 
         return $next($request);
