@@ -1,0 +1,405 @@
+{
+	"info": {
+		"_postman_id": "task-management-api-2025",
+		"name": "Task Management API",
+		"description": "RESTful API collection for Task Management System with authentication and role-based access control",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set(\"access_token\", jsonData.access_token);",
+									"    pm.environment.set(\"access_token\", jsonData.access_token);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"manager@example.com\",\n    \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"login"
+							]
+						},
+						"description": "Authenticate user and receive access token. \n\n**Test Users:**\n- Manager: manager@example.com / password123\n- User 1: user1@example.com / password123\n- User 2: user2@example.com / password123"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Current User",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/me",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"me"
+							]
+						},
+						"description": "Get the currently authenticated user's information"
+					},
+					"response": []
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/logout",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"logout"
+							]
+						},
+						"description": "Logout the current user and invalidate the access token"
+					},
+					"response": []
+				}
+			],
+			"description": "Authentication endpoints for login, logout, and getting current user info"
+		},
+		{
+			"name": "Tasks",
+			"item": [
+				{
+					"name": "List All Tasks",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/tasks?status=pending&assignee_id=1&from=2025-01-01&to=2025-12-31",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"tasks"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "pending",
+									"description": "Filter by status: pending, completed, canceled",
+									"disabled": true
+								},
+								{
+									"key": "assignee_id",
+									"value": "1",
+									"description": "Filter by assignee user ID (manager only)",
+									"disabled": true
+								},
+								{
+									"key": "from",
+									"value": "2025-01-01",
+									"description": "Filter tasks from this date (YYYY-MM-DD)",
+									"disabled": true
+								},
+								{
+									"key": "to",
+									"value": "2025-12-31",
+									"description": "Filter tasks to this date (YYYY-MM-DD)",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Retrieve a list of all tasks with optional filtering.\n\n**Filters:**\n- `status`: pending, completed, canceled\n- `assignee_id`: Filter by assigned user ID (managers only)\n- `from`: Filter tasks from this date\n- `to`: Filter tasks to this date\n\n**Authorization:**\n- Regular users can only see their own tasks\n- Managers can see all tasks and use filters"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Task Details",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/tasks/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"tasks",
+								"1"
+							],
+							"variable": [
+								{
+									"key": "task_id",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Retrieve details of a specific task including parent task and children (dependencies).\n\n**Authorization:**\n- Regular users can only view tasks assigned to them\n- Managers can view any task"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Task (Manager Only)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Complete project documentation\",\n    \"description\": \"Write comprehensive documentation for the Task Management API\",\n    \"assignee_id\": 2,\n    \"due_date\": \"2025-12-31\",\n    \"parent_id\": null\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/tasks",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"tasks"
+							]
+						},
+						"description": "Create a new task. **Manager role required.**\n\n**Fields:**\n- `title` (required): Task title (max 255 characters)\n- `description` (optional): Task description\n- `assignee_id` (optional): ID of user to assign task to\n- `due_date` (optional): Due date in YYYY-MM-DD format\n- `parent_id` (optional): ID of parent task (for dependencies)\n\n**Note:** Task status is automatically set to 'pending' and created_by_id is set to the authenticated user."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Task (Manager Only)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Updated task title\",\n    \"description\": \"Updated description\",\n    \"assignee_id\": 3,\n    \"due_date\": \"2025-12-31\",\n    \"parent_id\": null,\n    \"status\": \"pending\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/tasks/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"tasks",
+								"1"
+							],
+							"variable": [
+								{
+									"key": "task_id",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Update task details. **Manager role required.**\n\n**Fields (all optional with 'sometimes'):**\n- `title`: Task title (max 255 characters)\n- `description`: Task description\n- `assignee_id`: ID of user to assign task to\n- `due_date`: Due date in YYYY-MM-DD format\n- `parent_id`: ID of parent task (cannot be self)\n- `status`: Task status (pending, completed, canceled)\n\n**Validation:**\n- Cannot set parent_id to task's own ID\n- Cannot mark as completed if children tasks are incomplete"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Task Status",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"completed\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/tasks/1/status",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"tasks",
+								"1",
+								"status"
+							],
+							"variable": [
+								{
+									"key": "task_id",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Update task status only. **Available for all authenticated users.**\n\n**Authorization:**\n- Regular users can only update status of tasks assigned to them\n- Managers can update status of any task\n\n**Status values:**\n- `pending`: Task is pending\n- `completed`: Task is completed\n- `canceled`: Task is canceled\n\n**Validation:**\n- Cannot mark as completed if children tasks are incomplete"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Task (Manager Only)",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/tasks/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"tasks",
+								"1"
+							],
+							"variable": [
+								{
+									"key": "task_id",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Delete a task. **Manager role required.**\n\n**Note:** This will permanently delete the task. Child tasks will have their parent_id set to null (based on migration cascade settings)."
+					},
+					"response": []
+				}
+			],
+			"description": "Task management endpoints for CRUD operations"
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000/api",
+			"type": "string"
+		},
+		{
+			"key": "access_token",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
+
+
