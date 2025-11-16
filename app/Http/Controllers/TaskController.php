@@ -25,7 +25,9 @@ class TaskController extends Controller
             $query->where('status', $request->status);
         }
 
-        if ($request->filled('assignee_id')) {
+        if (auth()->user()->role === 'user') {
+            $query->where('assignee_id', auth()->id());
+        } elseif ($request->filled('assignee_id')) {
             $query->where('assignee_id', $request->assignee_id);
         }
 
@@ -36,10 +38,6 @@ class TaskController extends Controller
             $query->whereDate('due_date', '<=', $request->to);
         }
 
-        if (auth()->user()->role === 'user') {
-            $query->where('assignee_id', auth()->id());
-        }
-
         $tasks = $query->with(['parent','children','assignee','creator'])->get();
 
         return TaskResource::collection($tasks);
@@ -48,11 +46,11 @@ class TaskController extends Controller
     public function show(Task $task)
     {
         if (auth()->user()->role === 'user' && $task->assignee_id !== auth()->id()) {
-            return response()->json(['message' => 'forbidden'], 403);
+            return response()->json(['message' => 'Access denied'], 403);
         }
         $task->load(['parent', 'children', 'assignee', 'creator']);
 
-        return new TaskResource($task);
+        return response()->json(new TaskResource($task), 200);
     }
 
     public function store(Request $request)
@@ -68,13 +66,11 @@ class TaskController extends Controller
         $data['created_by_id']= auth()->id();
         $data['status']='pending';
 
-
-
         $task = Task::create($data);
 
         $task->load(['parent', 'children', 'assignee', 'creator']);
 
-        return new TaskResource($task);
+        return response()->json(new TaskResource($task), 201);
     }
 
 
@@ -85,10 +81,15 @@ class TaskController extends Controller
             'description'  => 'sometimes|nullable|string',
             'assignee_id'  => 'sometimes|nullable|exists:users,id',
             'due_date'     => 'sometimes|nullable|date',
-            'parent_id'    => 'sometimes|nullable|exists:tasks,id',
+            'parent_id'    => ['sometimes','nullable', 'exists:tasks,id',
+                function ($attribute, $value, $fail) use ($task) {
+                    if ($value && $value == $task->id) {
+                        $fail('A task cannot depend on itself.');
+                    }
+                },
+            ],
             'status'       => 'sometimes|required|in:pending,completed,canceled',
         ]);
-
 
         if (isset($data['status']) && $data['status'] === 'completed') {
             $hasIncompleteChildren = $task->children()
@@ -106,7 +107,7 @@ class TaskController extends Controller
 
         $task->load(['parent', 'children', 'assignee', 'creator']);
 
-        return new TaskResource($task);
+        return response()->json(new TaskResource($task), 200);
     }
 
 
@@ -138,14 +139,21 @@ class TaskController extends Controller
             'status' => $data['status']
         ]);
 
-        return new TaskResource(
-            $task->load(['parent', 'children', 'assignee', 'creator'])
+        return response()->json(
+            new TaskResource($task->load(['parent', 'children', 'assignee', 'creator'])),
+            200
         );
-
-
-
     }
 
+
+    public function destroy(Task $task)
+    {
+        $task->delete();
+
+        return response()->json([
+            'message' => 'Task deleted successfully.'
+        ], 200);
+    }
 
 
 }

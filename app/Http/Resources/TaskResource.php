@@ -20,6 +20,14 @@ class TaskResource extends JsonResource
                 'title' => $this->parent->title,
             ] : null,
 
+            'children' => $this->children->map(function ($child) {
+                return [
+                    'id'     => $child->id,
+                    'title'  => $child->title,
+                    'status' => $child->status,
+                ];
+            }),
+
             'assignee' => [
                 'id'    => $this->assignee?->id,
                 'name'  => $this->assignee?->name,

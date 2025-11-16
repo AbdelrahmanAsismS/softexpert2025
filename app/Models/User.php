@@ -23,16 +23,6 @@ class User extends Authenticatable
         'password',
     ];
 
-    public function getJWTIdentifier()
-    {
-        return $this->getKey();
-    }
-
-    public function getJWTCustomClaims()
-    {
-        return [];
-    }
-
 
     public function createdTasks()
     {
