@@ -131,7 +131,7 @@ class TaskController extends Controller
             if ($childrenIncomplete) {
                 return response()->json([
                     'message' => 'Children must be completed first.'
-                ], 422);
+                ], 200);
             }
         }
 
