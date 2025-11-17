@@ -18,8 +18,8 @@ I'm using MySQL, so make sure MySQL is running on your machine. If you're using 
 
 If you're using git:
 ```bash
-git clone <repo-url>
-cd softxper2025c
+git clone https://github.com/AbdelrahmanAsismS/softexpert2025
+cd softexpert2025
 ```
 
 Or just download and extract the zip file somewhere.
@@ -161,48 +161,6 @@ Make sure to:
 - Set the `base_url` variable to `http://localhost:8000/api` (or whatever port you're using)
 - Run the "Login" request first to get an access token
 - The token will be automatically saved and used for other requests
-
-## Common Issues
-
-**"SQLSTATE[HY000] [2002] Connection refused" or "Access denied"**
-- Make sure MySQL is running (check XAMPP control panel or your MySQL service)
-- Check that the database credentials in `.env` are correct (username, password, database name)
-- Verify the database exists: `mysql -u root -p -e "SHOW DATABASES;"`
-
-**"Unknown database 'task_management'"**
-- Make sure you created the database first (see Database setup section above)
-- Check that the database name in `.env` matches the one you created
-
-**"Class 'App\...' not found"**
-- Run `composer dump-autoload` to regenerate the autoloader
-
-**"Access denied" errors**
-- Make sure you're logged in and using the Bearer token
-- Check that the user role has the right permissions (managers vs regular users)
-
-**Port already in use**
-- Either stop the other application using that port, or use `php artisan serve --port=8001` to use a different port
-
-**Migration errors**
-- If you've already run migrations and want to start fresh, you can reset: `php artisan migrate:fresh --seed`
-- Warning: This will delete all data!
-- Make sure MySQL user has proper permissions: `GRANT ALL PRIVILEGES ON task_management.* TO 'root'@'localhost';`
-
-**Can't connect to MySQL**
-- If using XAMPP, make sure Apache and MySQL are both running
-- Check if MySQL port 3306 is available: `netstat -an | findstr 3306` (Windows) or `lsof -i :3306` (Mac/Linux)
-- Try using `127.0.0.1` instead of `localhost` in `.env` if you're on Windows
-
-## Project Structure
-
-Nothing special here, just standard Laravel stuff:
-- `app/Http/Controllers/` - Controllers (TaskController, AuthController)
-- `app/Http/Middleware/` - Custom middleware (ManagerMiddleware)
-- `app/Models/` - Models (Task, User)
-- `app/Http/Resources/` - API resources (TaskResource)
-- `routes/api.php` - API routes
-- `database/migrations/` - Database migrations
-- `database/seeders/` - Database seeders
 
 ## Notes
 
